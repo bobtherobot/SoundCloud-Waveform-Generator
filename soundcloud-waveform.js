@@ -54,16 +54,18 @@ var SoundCloudWaveform = {
 	    var len = Math.floor(buffer.length / sections);
 	    var maxHeight = this.settings.canvas.height;
 	    var vals = [];
-	    for (var i = 0; i < sections; i += this.settings.bar_width) {
-	        vals.push(this.bufferMeasure(i * len, len, buffer) * 10000);
+	    var barWidth = this.settings.bar_width;
+	
+	    // Find Max Val
+	    for (var i = 0; i < sections; i += barWidth) {
+		    vals.push(this.bufferMeasure(i * len, len, buffer));
 	    }
+	    var maxVal = vals.max();
 
-	    for (var j = 0; j < sections; j += this.settings.bar_width) {
-	        var scale = maxHeight / vals.max();
-	        var val = this.bufferMeasure(j * len, len, buffer) * 10000;
-	        val *= scale;
-	        val += 1;
-	        this.drawBar(j, val);
+	    // Render
+	    for (var j = 0; j < sections; j += barWidth) {
+	        var val = this.bufferMeasure(j * len, len, buffer);
+			this.drawBar(j, maxHeight * (val / maxVal));
 	    }
 
 	    if (this.settings.download) {
@@ -77,9 +79,9 @@ var SoundCloudWaveform = {
     bufferMeasure: function(position, length, data) {
         var sum = 0.0;
         for (var i = position; i <= (position + length) - 1; i++) {
-            sum += Math.pow(data[i], 2);
+            sum += Math.abs(data[i]);
         }
-        return Math.sqrt(sum / data.length);
+        return sum / data.length;
     },
 
     drawBar: function(i, h) {
